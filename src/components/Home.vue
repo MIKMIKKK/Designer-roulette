@@ -5,7 +5,6 @@
       <h1>PIRATE'S DESTINY</h1>
       <button class="btn-secondary" @click="openRules">Captain's Rules</button>
     </header>
-
     <main>
       <section class="game-area">
         <div class="dice-container">
