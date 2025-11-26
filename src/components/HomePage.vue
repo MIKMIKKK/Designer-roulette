@@ -47,7 +47,8 @@
             <div class="wheel" :style="{ 
               transform: `rotate(${wheelRotation}deg)`, 
               backgroundImage: `url(${rouletteWheel})`,
-              backgroundPosition: `calc(50% + 9px) calc(50% + 10px)`
+              backgroundPosition: `center`,
+              backgroundSize: `125%`
             }">
               <!-- Image replaces manual segments -->
               <!-- Text removed as requested -->
@@ -57,6 +58,42 @@
               <span v-if="!isSpinning">SPIN</span>
               <span v-else>...</span>
             </button>
+
+            <!-- Debug Overlay -->
+            <svg v-if="showDebug" class="wheel-svg" viewBox="0 0 400 400" style="opacity: 0.7; pointer-events: none; z-index: 5;">
+              <g :transform="`rotate(${logicalOffset}, 200, 200)`">
+                <g v-for="(segment, index) in wheelSegments" :key="index"
+                   :transform="`rotate(${index * segmentAngle}, 200, 200)`">
+                  <path :d="getSegmentPath()" 
+                        :fill="getSegmentColor(segment.type)" 
+                        stroke="white" stroke-width="2" />
+                  <text x="250" y="80" 
+                        text-anchor="middle" 
+                        :transform="`rotate(${segmentAngle/2}, 200, 200)`"
+                        fill="white"
+                        font-weight="bold"
+                        font-size="10">
+                    {{ index }}
+                  </text>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Debug Controls -->
+        <div class="debug-controls">
+          <button @click="showDebug = !showDebug" class="btn-secondary" style="margin-bottom: 10px;">
+            {{ showDebug ? 'Hide Debug' : 'Show Debug' }}
+          </button>
+          <div v-if="showDebug" class="debug-panel">
+            <label>
+              Logical Offset: {{ logicalOffset }}deg
+              <input type="range" min="0" max="360" v-model.number="logicalOffset" style="width: 100%;">
+            </label>
+            <div class="detected-winner">
+              Detected: <strong>{{ detectedWinner?.type || 'None' }}</strong>
+            </div>
           </div>
         </div>
 
@@ -160,7 +197,7 @@ import fond2 from '@/assets/fond2.png';
 import fond3 from '@/assets/fond3.png';
 import logo from '@/assets/logo.svg';
 import rond1 from '@/assets/ROND/rond 1.png';
-import rouletteWheel from '@/assets/roulette_wheel.png';
+import rouletteWheel from '@/assets/test.png';
 
 // --- Game Data ---
 const QUESTIONS = {
@@ -194,14 +231,34 @@ const DECK_TYPES = [
   { type: 'HARD', label: 'HARD', image: fond3 }
 ];
 
-// Wheel Segments (12 total, 30deg each)
-// Order clockwise from top: MEDIUM, SOFT, HARD...
-const wheelSegments = Array.from({ length: 3 }).flatMap(() => [
-  { type: 'HARD', label: 'HARD', image: fond3 },
+// Wheel Segments (24 total, 15deg each)
+// Order provided by user
+const wheelSegments = [
   { type: 'MEDIUM', label: 'MEDIUM', image: fond1 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
   { type: 'SOFT', label: 'SOFT', image: fond1 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'HARD', label: 'HARD', image: fond3 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'MEDIUM', label: 'MEDIUM', image: fond1 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'SOFT', label: 'SOFT', image: fond1 },
+  { type: 'HARD', label: 'HARD', image: fond3 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'MEDIUM', label: 'MEDIUM', image: fond1 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'HARD', label: 'HARD', image: fond3 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'SOFT', label: 'SOFT', image: fond1 },
+  { type: 'MEDIUM', label: 'MEDIUM', image: fond1 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'SOFT', label: 'SOFT', image: fond1 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
+  { type: 'HARD', label: 'HARD', image: fond3 },
+  { type: 'BONUS', label: 'BONUS', image: fond3 },
   { type: 'BONUS', label: 'BONUS', image: fond3 }
-]);
+];
 
 // --- State ---
 const showRules = ref(false);
@@ -216,18 +273,26 @@ const currentQuestion = ref(null);
 
 const isCardFlipped = ref(false);
 
+// Debug State
+const showDebug = ref(false);
+const logicalOffset = ref(0);
 
+const segmentAngle = computed(() => 360 / wheelSegments.length);
+
+const detectedWinner = computed(() => {
+  const normalizedRotation = wheelRotation.value % 360;
+  const angleUnderPointer = (360 - normalizedRotation + logicalOffset.value) % 360;
+  const segmentIndex = Math.floor(angleUnderPointer / segmentAngle.value);
+  return wheelSegments[segmentIndex];
+});
 
 const isDrawingCard = ref(false);
 const deckRefs = ref({});
 const flyingCardStyle = ref({});
 
-
-
 const currentDeckImage = computed(() => {
   if (!currentQuestion.value) return fond1;
   const deck = DECK_TYPES.find(d => d.type === currentQuestion.value.difficulty);
-  // Fallback for BONUS to HARD deck image if needed, or just keep fond1/fond3
   if (currentQuestion.value.difficulty === 'BONUS') return fond3; 
   return deck ? deck.image : fond1;
 });
@@ -264,10 +329,6 @@ function getPoints(difficulty) {
   return 3;
 }
 
-
-
-
-
 function spinWheel() {
   if (isSpinning.value) return;
   
@@ -288,32 +349,15 @@ function spinWheel() {
 
 function handleSpinResult(rotation) {
   const normalizedRotation = rotation % 360;
-  // Pointer is at top (0 deg).
-  // The wheel rotates clockwise.
-  // The segment at the top is the one that "won".
-  // Angle 0 of the wheel is the start of the first segment (Index 0).
-  // If rotation is 0, Index 0 is at 0-30 deg (right of top?).
-  // Wait, CSS rotate starts at 12 o'clock or 3 o'clock?
-  // Usually 0deg is 12 o'clock in my CSS if I set it up that way, or 3 o'clock default.
-  // Let's assume standard CSS: 0deg is 12 o'clock if I rotate segments from there.
-  // My segments are rotated `index * 30`.
-  // Segment 0 is at 0deg.
-  // Segment 1 is at 30deg.
-  // If wheel rotates -30deg, Segment 1 is at top.
-  // So: Angle under pointer = (360 - rotation) % 360.
-  
-  // CALIBRATION: Adjust this value if the wrong segment is selected.
-  // This represents the angle of the first segment (Index 0) on the image relative to the top.
-  const ROTATION_OFFSET = 0; 
+  const ROTATION_OFFSET = logicalOffset.value; 
   
   const angleUnderPointer = (360 - normalizedRotation + ROTATION_OFFSET) % 360;
-  const segmentIndex = Math.floor(angleUnderPointer / 30);
+  const segmentIndex = Math.floor(angleUnderPointer / segmentAngle.value);
   const winningSegment = wheelSegments[segmentIndex];
   
   const difficulty = winningSegment.type;
 
   // Pick random question
-  // If BONUS, use HARD questions
   const pool = difficulty === 'BONUS' ? QUESTIONS['HARD'] : QUESTIONS[difficulty];
   const qData = pool[Math.floor(Math.random() * pool.length)];
   
@@ -353,6 +397,32 @@ function triggerCardDraw() {
   }, 1200);
 }
 
+function getSegmentColor(type) {
+  switch (type) {
+    case 'SOFT': return '#90EE90'; // Light Green
+    case 'MEDIUM': return '#87CEEB'; // Sky Blue
+    case 'HARD': return '#FF6347'; // Tomato Red
+    case 'BONUS': return '#FFD700'; // Gold
+    default: return '#CCCCCC';
+  }
+}
+
+function getSegmentPath() {
+  const angle = segmentAngle.value;
+  // Convert angle to radians
+  const rad = (angle * Math.PI) / 180;
+  // Center is 200,200. Radius 200.
+  // Start point is 200,0 (top center)
+  // End point:
+  const x = 200 + 200 * Math.sin(rad);
+  const y = 200 - 200 * Math.cos(rad);
+  
+  // Large arc flag is 0 for angles < 180
+  const largeArc = angle > 180 ? 1 : 0;
+  
+  return `M200,200 L200,0 A200,200 0 ${largeArc},1 ${x},${y} Z`;
+}
+
 function resolveTurn(correct) {
   if (correct) {
     const player = players.value[currentPlayerIndex.value];
@@ -375,6 +445,9 @@ function resolveTurn(correct) {
   --primary-color: #D4AF37;
   --bg-color: #000000;
   --card-bg: #1a1a1a;
+  --front-soft: #f29abb;
+  --front-medium: #dfdc08;
+  --front-hard: #594696;
 }
 
 #home-root {
@@ -539,10 +612,10 @@ h1 {
 /* WHEEL STYLES */
 .wheel-container {
   position: relative;
-  width: 60vh;
-  height: 60vh;
-  max-width: 90vw;
-  max-height: 90vw;
+  width: 75vh;
+  height: 75vh;
+  max-width: 95vw;
+  max-height: 95vw;
   aspect-ratio: 1 / 1;
 }
 
@@ -632,15 +705,16 @@ h1 {
 .wheel-container::after {
   content: '';
   position: absolute;
-  top: -10px;
+  top: -5px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-top: 25px solid white;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 40px solid var(--primary-color);
   z-index: 20;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
 .spin-btn {
@@ -648,8 +722,8 @@ h1 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 25%; /* Responsive size */
-  height: 25%;
+  width: 20%; /* Responsive size */
+  height: 20%;
   border-radius: 50%;
   background: radial-gradient(circle, #D4AF37, #8B6914);
   border: 4px solid white;
@@ -1086,4 +1160,31 @@ h1 {
 }
 
 
+.debug-controls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.debug-panel {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid var(--primary-color);
+  padding: 1rem;
+  border-radius: 8px;
+  width: 250px;
+  color: white;
+}
+
+.detected-winner {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  text-align: center;
+  border-top: 1px solid #333;
+  padding-top: 10px;
+}
 </style>
