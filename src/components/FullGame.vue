@@ -21,6 +21,18 @@
         </div>
       </div>
 
+      <!-- NAMES PHASE -->
+      <div v-else-if="gamePhase === 'NAMES'" class="setup-container">
+        <h2>Enter Player Names</h2>
+        <div class="name-inputs">
+          <div v-for="(player, index) in players" :key="player.id" class="input-group">
+            <label>Player {{ index + 1 }}</label>
+            <input v-model="player.name" type="text" placeholder="Enter name..." />
+          </div>
+        </div>
+        <button class="btn-primary" @click="startGame">Start Game</button>
+      </div>
+
       <!-- GAME PHASE -->
       <div v-else class="game-layout">
         
@@ -291,8 +303,13 @@ function initGame(playerCount) {
     score: 0
   }));
   currentPlayerIndex.value = 0;
-  gamePhase.value = 'PLAYING';
+  currentPlayerIndex.value = 0;
+  gamePhase.value = 'NAMES';
   wheelRotation.value = 0;
+}
+
+function startGame() {
+  gamePhase.value = 'PLAYING';
 }
 
 function resetGame() {
@@ -537,6 +554,8 @@ h1 {
   gap: 2rem;
   padding: 2rem;
   text-align: center;
+  position: relative;
+  z-index: 10;
 }
 
 .player-selection {
@@ -544,6 +563,42 @@ h1 {
   gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.name-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.input-group label {
+  color: var(--primary-color);
+  font-family: var(--font-accent);
+  margin-bottom: 0.5rem;
+}
+
+.input-group input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.8rem;
+  color: white;
+  font-family: var(--font-main);
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* GAME LAYOUT */
