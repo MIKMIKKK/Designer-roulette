@@ -39,7 +39,7 @@
               </div>
             </li>
           </ul>
-           <button class="btn-secondary small" @click="nextTurn">Next Turn</button>
+           <button class="btn-secondary small next-turn-btn" @click="nextTurn">Next Turn</button>
         </aside>
 
         <!-- ROULETTE AREA -->
@@ -113,8 +113,7 @@ import { ref } from 'vue';
 import rouletteWheel from '@/assets/test.png';
 import rond1 from '@/assets/ROND/rond 1.png';
 import logo from '@/assets/logo.svg';
-import fond1 from '@/assets/fond1.png';
-import fond3 from '@/assets/fond3.png';
+
 
 // --- State ---
 const showRules = ref(false);
@@ -178,7 +177,7 @@ function nextTurn() {
   currentPlayerIndex.value = (currentPlayerIndex.value + 1) % players.value.length;
 }
 
-function handleSpinResult(rotation) {
+function handleSpinResult() {
   // Manual mode: just finish spinning, do not add points or switch turn automatically
   gamePhase.value = 'PLAYING';
 }
@@ -411,6 +410,14 @@ h1 {
   margin-left: 0;
   width: auto;
   min-width: 120px;
+}
+
+.next-turn-btn {
+  width: 100%;
+  margin-top: 1rem;
+  text-align: center;
+  justify-content: center;
+  display: flex;
 }
 
 .roulette-section {
