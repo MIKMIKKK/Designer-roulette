@@ -1401,6 +1401,8 @@ h1 {
     max-width: 800px; /* Wider */
     width: 90%;
     padding: 3rem;
+    max-height: 85vh; /* Ensure it fits on screen */
+    overflow-y: auto; /* Scrollable if too tall */
   }
 
   .rules-content h2 {
@@ -1459,13 +1461,17 @@ h1 {
   }
 
   /* Mobile Adjustments */
+  /* Mobile Adjustments */
   @media (max-width: 768px) {
     .rules-content {
-      padding: 1.5rem;
+      padding: 1rem;
+      width: 95%;
+      max-width: 100%;
     }
     
     .rules-content h2 {
-      font-size: 2rem;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
     }
 
     .rules-container {
@@ -1473,11 +1479,13 @@ h1 {
     }
 
     .rules-container h3 {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
+      margin-top: 1.5rem;
     }
     
     .rules-container li {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      gap: 5px;
     }
   }
 </style>

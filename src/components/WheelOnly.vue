@@ -5,7 +5,7 @@
         <img :src="logo" alt="DESIGNER'S" class="title-img top" />
       </div>
       <div class="header-controls">
-        <button id="rules-btn" class="btn-secondary" @click="showRules = true">Captain's Rules</button>
+        <button id="rules-btn" class="btn-secondary" @click="showRules = true">Rules</button>
         <button v-if="gamePhase !== 'SETUP'" class="btn-secondary" @click="resetGame">Reset Game</button>
       </div>
     </header>
@@ -94,7 +94,7 @@
     <div id="rules-modal" class="modal" :class="{ hidden: !showRules }" @click.self="showRules = false">
       <div class="modal-content rules-content">
         <span class="close-modal" @click="showRules = false">&times;</span>
-        <h2>Captain's Rules</h2>
+        <h2>Rules</h2>
         <div class="rules-container">
           <h3>ROULETTE</h3>
           <p>Spin the wheel to determine your destiny.</p>
@@ -846,4 +846,100 @@ h1 {
 }
 
 
+
+  /* Rules Modal Styling */
+  .rules-content {
+    background: linear-gradient(145deg, #1a1a1a, #000000);
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+    max-width: 800px; /* Wider */
+    width: 90%;
+    padding: 3rem;
+    max-height: 85vh; /* Ensure it fits on screen */
+    overflow-y: auto; /* Scrollable if too tall */
+  }
+
+  .rules-content h2 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+    padding-bottom: 1rem;
+  }
+
+  .rules-container {
+    font-size: 1.2rem; /* Larger base font */
+    line-height: 1.8;
+    color: #e0e0e0;
+    text-align: left;
+  }
+
+  .rules-container h3 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-family: var(--font-accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .rules-container ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 10px;
+  }
+
+  .rules-container li {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+  }
+
+  .rules-container li:last-child {
+    margin-bottom: 0;
+  }
+
+  .rules-container strong {
+    color: white;
+    font-weight: bold;
+  }
+
+  /* Mobile Adjustments */
+  /* Mobile Adjustments */
+  @media (max-width: 768px) {
+    .rules-content {
+      padding: 1rem;
+      width: 95%;
+      max-width: 100%;
+    }
+    
+    .rules-content h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .rules-container {
+      font-size: 1rem;
+    }
+
+    .rules-container h3 {
+      font-size: 1.2rem;
+      margin-top: 1.5rem;
+    }
+    
+    .rules-container li {
+      font-size: 1rem;
+      gap: 5px;
+    }
+  }
 </style>
